@@ -1,0 +1,11 @@
+version: '3.3'
+
+services:
+  postgres:
+    container_name: postgres_container1
+    image: postgres:14
+    environment:
+      POSTGRES_USER: "xenous"
+      POSTGRES_PASSWORD: "xenous"
+    ports:
+      - "6444:5432"
