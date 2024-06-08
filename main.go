@@ -2,7 +2,11 @@ package main
 
 import (
 	// "database/sql"
+
+	"encoding/json"
 	"fmt"
+
+	jopa2 "github.com/KozhurkinTimur/dota2/name"
 	"github.com/google/uuid"
 	"github.com/jmoiron/sqlx"
 	_ "github.com/lib/pq"
@@ -10,7 +14,8 @@ import (
 
 // Data structure for the greeting template
 type GreetingData struct {
-	Name string
+	Id   uuid.UUID `db:"id"`
+	Name string    `db:"name"`
 }
 
 // Database initialization function
@@ -32,21 +37,66 @@ func initDB() (*sqlx.DB, error) {
 	if err != nil {
 		return nil, err
 	}
-	// ctx := context.Background()
-	// db.NamedExecContext(ctx, '', )
-	insertUser(db, "Oleg")
+
+	// deleteUser(db)
+	// insertUser(db)
+	// getUser(db)
+
 	return db, nil
 }
 
 // Function to insert a user into the database
-func insertUser(db *sqlx.DB, name string) error {
+func insertUser(db *sqlx.DB) error {
 	var err error
-	for i := 0; i < 10; i++ {
+	for i := 0; i < 5; i++ {
+		name := jopa2.Dota2Name() //вместо этого можно поставить randomdata.name
 		id := uuid.New()
 		_, err := db.Exec("INSERT INTO users (id, name) VALUES ($1, $2)", id, name)
 		fmt.Println(err)
 	}
 	return err
+}
+
+func deleteUser(db *sqlx.DB, inputId uuid.UUID) (error, GreetingData) {
+	var err error
+	var grData GreetingData
+	// fmt.Scanln(&inputId)
+	err = db.Get(&grData, "DELETE FROM users WHERE id = $1 RETURNING *", inputId)
+
+	if err != nil {
+		fmt.Println(err)
+	}
+
+	return err, grData
+}
+
+func getUser(db *sqlx.DB) error {
+	result, err := db.Queryx("SELECT * FROM users")
+
+	for result.Next() {
+		var id uuid.UUID
+		var name string
+
+		err = result.Scan(&id, &name)
+
+		fmt.Println("id: " + id.String() + " name: " + name)
+	}
+
+	return err
+}
+
+func Jsonify(obj any) string {
+	if obj == nil {
+		return ""
+	}
+
+	str, err := json.MarshalIndent(obj, "", " ")
+	if err != nil {
+		fmt.Println(err)
+		return ""
+	}
+
+	return string(str)
 }
 
 func main() {
@@ -56,5 +106,9 @@ func main() {
 		fmt.Println("Error initializing database:", err)
 		return
 	}
+	err, grData := deleteUser(db, uuid.MustParse("d7006448-e348-4d6d-bcf5-4ba4b66af877"))
 	defer db.Close()
+	
+	n := Jsonify(grData)
+	fmt.Println(n)
 }
