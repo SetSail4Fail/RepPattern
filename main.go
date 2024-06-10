@@ -85,6 +85,28 @@ func getUser(db *sqlx.DB) error {
 	return err
 }
 
+func updateUser(db *sqlx.DB, inputId uuid.UUID) (*GreetingData, error) {
+	var err error
+	var grData = new(GreetingData)
+
+	name := "" //jopa2.Dota2Name()
+	if name == "" {
+		err = db.Get(grData, "SELECT * FROM users WHERE id = $1", inputId)
+		fmt.Println(grData.Name)
+		if err != nil {
+			fmt.Println(err)
+		}
+		err = db.Get(grData, "UPDATE users SET name = $1 WHERE id = $2 RETURNING *", grData.Name, inputId)
+	} else {
+		err = db.Get(grData, "UPDATE users SET name = $1 WHERE id = $2 RETURNING *", name, inputId)
+	}
+
+	if err != nil {
+		fmt.Println(err)
+	}
+	return grData, err
+}
+
 func Jsonify(obj any) string {
 	if obj == nil {
 		return ""
@@ -106,9 +128,11 @@ func main() {
 		fmt.Println("Error initializing database:", err)
 		return
 	}
-	err, grData := deleteUser(db, uuid.MustParse("d7006448-e348-4d6d-bcf5-4ba4b66af877"))
+	// err, grData := deleteUser(db, uuid.MustParse("d7006448-e348-4d6d-bcf5-4ba4b66af877"))
+	grData, err := updateUser(db, uuid.MustParse("2fcb2070-d483-4a98-8b9d-a7d8dd35435c"))
+
 	defer db.Close()
-	
+
 	n := Jsonify(grData)
 	fmt.Println(n)
 }
