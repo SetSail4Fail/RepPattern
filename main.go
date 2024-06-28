@@ -9,7 +9,7 @@ import (
 	jopa2 "github.com/KozhurkinTimur/dota2/name"
 	"github.com/google/uuid"
 	"github.com/jmoiron/sqlx"
-	_ "github.com/lib/pq"
+	_ "github.com/lib/pq"	
 )
 
 // Data structure for the greeting template
@@ -45,6 +45,15 @@ func initDB() (*sqlx.DB, error) {
 	return db, nil
 }
 
+func userContains(db *sqlx.DB, inputId uuid.UUID) (*GreetingData, error) {
+	var err error
+	var grData = new(GreetingData)
+
+	err = db.Get(grData, "SELECT * FROM users WHERE id = $1", inputId)
+
+	return grData, err
+}
+
 // Function to insert a user into the database
 func insertUser(db *sqlx.DB) error {
 	var err error
@@ -57,7 +66,7 @@ func insertUser(db *sqlx.DB) error {
 	return err
 }
 
-func deleteUser(db *sqlx.DB, inputId uuid.UUID) (error, GreetingData) {
+func deleteUser(db *sqlx.DB, inputId uuid.UUID) (GreetingData, error) {
 	var err error
 	var grData GreetingData
 	// fmt.Scanln(&inputId)
@@ -67,22 +76,16 @@ func deleteUser(db *sqlx.DB, inputId uuid.UUID) (error, GreetingData) {
 		fmt.Println(err)
 	}
 
-	return err, grData
+	return grData, err 
 }
 
-func getUser(db *sqlx.DB) error {
-	result, err := db.Queryx("SELECT * FROM users")
+func getUser(db *sqlx.DB, inputId uuid.UUID) (*GreetingData, error) {
+	var err error
+	var grData = new(GreetingData)
 
-	for result.Next() {
-		var id uuid.UUID
-		var name string
+	err = db.Get(grData, "SELECT * FROM users WHERE id = $1", inputId)
 
-		err = result.Scan(&id, &name)
-
-		fmt.Println("id: " + id.String() + " name: " + name)
-	}
-
-	return err
+	return grData, err
 }
 
 func updateUser(db *sqlx.DB, inputId uuid.UUID) (*GreetingData, error) {
@@ -128,11 +131,19 @@ func main() {
 		fmt.Println("Error initializing database:", err)
 		return
 	}
-	// err, grData := deleteUser(db, uuid.MustParse("d7006448-e348-4d6d-bcf5-4ba4b66af877"))
-	grData, err := updateUser(db, uuid.MustParse("2fcb2070-d483-4a98-8b9d-a7d8dd35435c"))
-
+	// grData, err := deleteUser(db, uuid.MustParse("d7006448-e348-4d6d-bcf5-4ba4b66af877"))
+	//grData, err := updateUser(db, uuid.MustParse("2fcb2070-d483-4a98-8b9d-a7d8dd35435c"))
+	grData, err := userContains(db, uuid.MustParse("2fcb2070-d483-4a98-8b9d-a7d8dd35435c"))
+	
 	defer db.Close()
-
-	n := Jsonify(grData)
-	fmt.Println(n)
+	if err != nil {
+		fmt.Println("User Does Not Exists")
+		// n := Jsonify(grData.Name)
+		// id := Jsonify(grData.Id)
+		// fmt.Println("Name: "+ n)
+		// fmt.Println("Id: " + id)
+	} else {
+		n := Jsonify(grData.Name)
+		fmt.Println("User Founded " + n)
+	}
 }
