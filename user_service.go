@@ -2,25 +2,21 @@ package main
 
 import (
 	"github.com/google/uuid"
+	"github.com/jmoiron/sqlx"
 )
 
-type UserService struct {
-	Repo UserRepository
+func (s *Service) getUserByID(db *sqlx.DB, inputId uuid.UUID) (*GreetingData, error) {
+	return s.UserRepository.getUser(db, inputId)
 }
 
-func (s *UserService) getUserByID(inputId uuid.UUID) (*GreetingData, error) {
-	return s.Repo.getUser(inputId)
+func (s *Service) updateUserByID(db *sqlx.DB, inputId uuid.UUID) (*GreetingData, error) {
+	return s.UserRepository.updateUser(db, inputId)
 }
 
-func (s *UserService) updateUserByID(inputId uuid.UUID) (*GreetingData, error) {
-	return s.Repo.updateUser(inputId)
+func (s *Service) deleteUserByID(db *sqlx.DB, inputId uuid.UUID) (GreetingData, error) {
+	return s.UserRepository.deleteUser(db, inputId)
 }
 
-func (s *UserService) deleteUserByID(inputId uuid.UUID) (GreetingData, error) {
-	return s.Repo.deleteUser(inputId)
+func (s *Service) userContainsByID(db *sqlx.DB, inputId uuid.UUID) (*GreetingData, error) {
+	return s.UserRepository.userContains(db, inputId)
 }
-
-func (s *UserService) userContainsByID(inputId uuid.UUID) (*GreetingData, error) {	
-	return s.Repo.userContains(inputId)
-}
-

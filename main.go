@@ -9,7 +9,7 @@ import (
 	jopa2 "github.com/KozhurkinTimur/dota2/name"
 	"github.com/google/uuid"
 	"github.com/jmoiron/sqlx"
-	_ "github.com/lib/pq"	
+	_ "github.com/lib/pq"
 )
 
 // Data structure for the greeting template
@@ -76,7 +76,7 @@ func deleteUser(db *sqlx.DB, inputId uuid.UUID) (GreetingData, error) {
 		fmt.Println(err)
 	}
 
-	return grData, err 
+	return grData, err
 }
 
 func getUser(db *sqlx.DB, inputId uuid.UUID) (*GreetingData, error) {
@@ -124,7 +124,18 @@ func Jsonify(obj any) string {
 	return string(str)
 }
 
+func test(s *Service, db*sqlx.DB) {
+	
+	grData, err := s.userContainsByID(db, uuid.MustParse("2fcb2070-d483-4a98-8b9d-a7d8dd35435c"))
+	n := Jsonify(grData.Name)
+	fmt.Println("User Founded " + n)
+	if err != nil {
+		fmt.Println("PIZDAH")
+	}
+}
+
 func main() {
+
 	// Initialize the database
 	db, err := initDB()
 	if err != nil {
@@ -133,17 +144,17 @@ func main() {
 	}
 	// grData, err := deleteUser(db, uuid.MustParse("d7006448-e348-4d6d-bcf5-4ba4b66af877"))
 	//grData, err := updateUser(db, uuid.MustParse("2fcb2070-d483-4a98-8b9d-a7d8dd35435c"))
-	grData, err := userContains(db, uuid.MustParse("2fcb2070-d483-4a98-8b9d-a7d8dd35435c"))
-	
+	// grData, err := userContains(db, uuid.MustParse("2fcb2070-d483-4a98-8b9d-a7d8dd35435c"))
+	test(&Service{}, db)
 	defer db.Close()
-	if err != nil {
-		fmt.Println("User Does Not Exists")
-		// n := Jsonify(grData.Name)
-		// id := Jsonify(grData.Id)
-		// fmt.Println("Name: "+ n)
-		// fmt.Println("Id: " + id)
-	} else {
-		n := Jsonify(grData.Name)
-		fmt.Println("User Founded " + n)
-	}
+	// 	if err != nil {
+	// 		fmt.Println("User Does Not Exists")
+	// 		// n := Jsonify(grData.Name)
+	// 		// id := Jsonify(grData.Id)
+	// 		// fmt.Println("Name: "+ n)
+	// 		// fmt.Println("Id: " + id)
+	// 	} else {
+	// 		n := Jsonify(grData.Name)
+	// 		fmt.Println("User Founded " + n)
+	// 	}
 }
